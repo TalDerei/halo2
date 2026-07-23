@@ -801,6 +801,15 @@ impl VerifyingKey<EqAffine> {
                 )
             })
             .collect();
+        let constants = cs
+            .constants
+            .iter()
+            .map(|column| column.index().to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        let minimum_degree = cs
+            .minimum_degree
+            .map_or_else(|| "none".to_owned(), |degree| format!("some {degree}"));
 
         // The constraint-system portion of the VK is useful independently of any captured proof.
         // Keep it in a small module so circuit/VK correspondence checks do not import the fixture's
@@ -814,6 +823,26 @@ impl VerifyingKey<EqAffine> {
             "namespace {}\n\n{}",
             lean_namespace,
             open_snark_namespace(lean_namespace)
+        ));
+        vk_cs_data.push_str(&format!(
+            "def vkNumFixedColumns : ℕ := {}\n\n",
+            cs.num_fixed_columns
+        ));
+        vk_cs_data.push_str(&format!(
+            "def vkNumAdviceColumns : ℕ := {}\n\n",
+            cs.num_advice_columns
+        ));
+        vk_cs_data.push_str(&format!(
+            "def vkNumInstanceColumns : ℕ := {}\n\n",
+            cs.num_instance_columns
+        ));
+        vk_cs_data.push_str(&format!(
+            "def vkNumSelectors : ℕ := {}\n\n",
+            cs.num_selectors
+        ));
+        vk_cs_data.push_str(&format!("def vkConstants : List ℕ := [{constants}]\n\n"));
+        vk_cs_data.push_str(&format!(
+            "def vkMinimumDegree : Option ℕ := {minimum_degree}\n\n"
         ));
         vk_cs_data.push_str("/-- Scalar field element from four little-endian u64 limbs. -/\n");
         vk_cs_data.push_str("def mkFp (a b c d : ℕ) : Fp := (a : Fp) + (b : Fp) * (2 : Fp) ^ 64 + (c : Fp) * (2 : Fp) ^ 128 + (d : Fp) * (2 : Fp) ^ 192\n\n");
