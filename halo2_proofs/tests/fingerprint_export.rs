@@ -192,8 +192,8 @@ fn exports_accepting_fixture() {
     );
 
     let modules = pk.get_vk().dump_vesta_lean_fixture(
-        "Halo2.Fixture.Render",
-        "Halo2.Fixture.Render.VkCsData",
+        "Zcash.Snark.Fixture",
+        "Zcash.Snark.Fixture.VkCsData",
         "render_accept",
         K,
         &[&[&pubinputs[..]]],
@@ -207,9 +207,9 @@ fn exports_accepting_fixture() {
         "import Zcash.Snark.Core.Field",
         "import Zcash.Snark.Fingerprint.Match",
         "import Zcash.Snark.Verifier.FiatShamir",
-        "import Halo2.Fixture.Render.VkCsData",
+        "import Zcash.Snark.Fixture.VkCsData",
         "abbrev G := SWPoint Vesta.curve",
-        "namespace Halo2.Fixture.Render",
+        "namespace Zcash.Snark.Fixture",
         "def shape : Shape",
         "theorem capturedUrsG_length : capturedUrsG.length = 2 ^ shape.k",
         "def vk : VerifyingKey shape Fp G",
@@ -228,7 +228,7 @@ fn exports_accepting_fixture() {
         "theorem instance_commitments_derived :\n    capturedPublicInstances.map commitLagrange = capturedInstanceCommitments := by native_decide",
         // The instance commitment `assemble` consumes is the derived one, not a VK field.
         "MsmMatch (assemble vk derivedInstanceCommitment ps ch) capturedMsm",
-        "end Halo2.Fixture.Render",
+        "end Zcash.Snark.Fixture",
     ] {
         assert!(
             fixture.contains(expected),
@@ -238,7 +238,7 @@ fn exports_accepting_fixture() {
     for expected in [
         "import Zcash.Snark.Core.Field",
         "import Zcash.Snark.Verifier.Assemble",
-        "namespace Halo2.Fixture.Render",
+        "namespace Zcash.Snark.Fixture",
         "def mkFp",
         "def vkGates : List (Expr Fp)",
         "def vkInstanceQueryLayout : List (ℕ × ℤ)",
@@ -274,6 +274,14 @@ fn exports_accepting_fixture() {
     assert!(
         !fixture.contains("import Zcash.Snark\n"),
         "fixture must not import the umbrella module and invalidate on unrelated changes"
+    );
+    assert!(
+        !fixture.contains("open Zcash.Snark"),
+        "a namespace is already open inside its child namespace"
+    );
+    assert!(
+        !vk_cs_data.contains("open Zcash.Snark"),
+        "a namespace is already open inside its child namespace"
     );
     // The exported `vk` mirrors the Rust `VerifyingKey`: it must NOT carry an `instanceCommitment`
     // field (that value is computed per proof from the public inputs, not stored on the VK).

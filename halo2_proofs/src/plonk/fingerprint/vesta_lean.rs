@@ -57,6 +57,14 @@ pub struct VestaLeanFixtureModules {
     pub vk_cs_data: String,
 }
 
+fn open_snark_namespace(lean_namespace: &str) -> &'static str {
+    if lean_namespace == "Zcash.Snark" || lean_namespace.starts_with("Zcash.Snark.") {
+        ""
+    } else {
+        "open Zcash.Snark\n\n"
+    }
+}
+
 /// A field element as a Lean constructor call with four little-endian `u64` limbs.
 fn field<F: PrimeField>(constructor: &str, x: F) -> String {
     let repr = x.to_repr();
@@ -803,8 +811,9 @@ impl VerifyingKey<EqAffine> {
         );
         vk_cs_data.push_str("import Zcash.Snark.Core.Field\nimport Zcash.Snark.Verifier.Assemble\n\nset_option maxRecDepth 1000000\n\n");
         vk_cs_data.push_str(&format!(
-            "namespace {}\n\nopen Zcash.Snark\n\n",
-            lean_namespace
+            "namespace {}\n\n{}",
+            lean_namespace,
+            open_snark_namespace(lean_namespace)
         ));
         vk_cs_data.push_str("/-- Scalar field element from four little-endian u64 limbs. -/\n");
         vk_cs_data.push_str("def mkFp (a b c d : ℕ) : Fp := (a : Fp) + (b : Fp) * (2 : Fp) ^ 64 + (c : Fp) * (2 : Fp) ^ 128 + (d : Fp) * (2 : Fp) ^ 192\n\n");
@@ -1202,8 +1211,10 @@ impl VerifyingKey<EqAffine> {
         // `maxRecDepth` is raised for the deeply-nested literals (the 2048-element URS and
         // g-scalar arrays and point-coordinate validation) that `native_decide` compiles.
         fixture.push_str(&format!(
-            "import CompElliptic.Curves.Pasta\nimport Zcash.Snark.Core.Field\nimport Zcash.Snark.Fingerprint.Match\nimport Zcash.Snark.Verifier.FiatShamir\nimport {}\n\nset_option maxRecDepth 1000000\n\nnamespace {}\n\nopen Zcash.Snark\nopen CompElliptic.CurveForms.ShortWeierstrass\nopen CompElliptic.Curves.Pasta\nopen CompElliptic.Fields.Pasta\n\n",
-            vk_cs_module, lean_namespace
+            "import CompElliptic.Curves.Pasta\nimport Zcash.Snark.Core.Field\nimport Zcash.Snark.Fingerprint.Match\nimport Zcash.Snark.Verifier.FiatShamir\nimport {}\n\nset_option maxRecDepth 1000000\n\nnamespace {}\n\n{}open CompElliptic.CurveForms.ShortWeierstrass\nopen CompElliptic.Curves.Pasta\nopen CompElliptic.Fields.Pasta\n\n",
+            vk_cs_module,
+            lean_namespace,
+            open_snark_namespace(lean_namespace)
         ));
         fixture.push_str("abbrev Fq := VestaBaseField\n\n");
         fixture.push_str("/-- Vesta base field element from four little-endian u64 limbs. -/\n");
