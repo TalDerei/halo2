@@ -14,6 +14,7 @@ mod transcript;
 pub use transcript::{ChallengeRecorder, TranscriptEvent};
 
 mod vesta_lean;
+pub use vesta_lean::VestaLeanFixtureModules;
 
 /// Internal strategy used by [`capture_proof_fingerprint`] to obtain the assembled verifier MSM
 /// without evaluating it.

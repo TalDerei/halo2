@@ -597,6 +597,7 @@ fn plonk_api() {
                 let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     pk.get_vk().dump_vesta_lean_fixture(
                         "Halo2.Fixture.PlonkApi",
+                        "Halo2.Fixture.PlonkApi.VkCsData",
                         "plonk_api",
                         K,
                         &[&[&pubinputs[..]], &[&pubinputs[..]]],

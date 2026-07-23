@@ -191,15 +191,24 @@ fn exports_accepting_fixture() {
         "a valid proof's fingerprint must be the identity"
     );
 
-    let fixture = pk.get_vk().dump_vesta_lean_fixture(
+    let modules = pk.get_vk().dump_vesta_lean_fixture(
         "Halo2.Fixture.Render",
+        "Halo2.Fixture.Render.VkCsData",
         "render_accept",
         K,
         &[&[&pubinputs[..]]],
         &transcript,
         &msm,
     );
+    let fixture = &modules.fixture;
+    let vk_cs_data = &modules.vk_cs_data;
     for expected in [
+        "import CompElliptic.Curves.Pasta",
+        "import Zcash.Snark.Core.Field",
+        "import Zcash.Snark.Fingerprint.Match",
+        "import Zcash.Snark.Verifier.FiatShamir",
+        "import Halo2.Fixture.Render.VkCsData",
+        "abbrev G := SWPoint Vesta.curve",
         "namespace Halo2.Fixture.Render",
         "def shape : Shape",
         "theorem capturedUrsG_length : capturedUrsG.length = 2 ^ shape.k",
@@ -226,6 +235,46 @@ fn exports_accepting_fixture() {
             "accepting fixture is missing `{expected}`"
         );
     }
+    for expected in [
+        "import Zcash.Snark.Core.Field",
+        "import Zcash.Snark.Verifier.Assemble",
+        "namespace Halo2.Fixture.Render",
+        "def mkFp",
+        "def vkGates : List (Expr Fp)",
+        "def vkInstanceQueryLayout : List (ℕ × ℤ)",
+        "def vkAdviceQueryLayout : List (ℕ × ℤ)",
+        "def vkFixedQueryLayout : List (ℕ × ℤ)",
+        "def vkPermutationChunks : List (List (ColumnRef × ℕ))",
+        "def vkLookupInputExprs : List (List (Expr Fp))",
+        "def vkLookupTableExprs : List (List (Expr Fp))",
+    ] {
+        assert!(
+            vk_cs_data.contains(expected),
+            "VK CS-data module is missing `{expected}`"
+        );
+    }
+    for expected in [
+        "gates := vkGates",
+        "instanceQueryLayout := vkInstanceQueryLayout",
+        "adviceQueryLayout := vkAdviceQueryLayout",
+        "fixedQueryLayout := vkFixedQueryLayout",
+        "permutationChunks := vkPermutationChunks",
+        "lookupInputExprs := fun l => vkLookupInputExprs.getD l.val []",
+        "lookupTableExprs := fun l => vkLookupTableExprs.getD l.val []",
+    ] {
+        assert!(
+            fixture.contains(expected),
+            "fixture VK does not reference split CS data `{expected}`"
+        );
+    }
+    assert!(
+        !fixture.contains("def vkGates"),
+        "fixture must not duplicate the split VK CS data"
+    );
+    assert!(
+        !fixture.contains("import Zcash.Snark\n"),
+        "fixture must not import the umbrella module and invalidate on unrelated changes"
+    );
     // The exported `vk` mirrors the Rust `VerifyingKey`: it must NOT carry an `instanceCommitment`
     // field (that value is computed per proof from the public inputs, not stored on the VK).
     assert!(
@@ -290,6 +339,7 @@ fn rejects_non_identity_capture() {
     let export_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         pk.get_vk().dump_vesta_lean_fixture(
             "Halo2.Fixture.RenderReject",
+            "Halo2.Fixture.RenderReject.VkCsData",
             "render_reject",
             K,
             &[&[&wrong_pubinputs[..]]],
