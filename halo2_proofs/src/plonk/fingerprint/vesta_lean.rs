@@ -19,7 +19,7 @@
 //! commitments (`instance_commitments_derived`), so instance commitments no longer enter as opaque
 //! points nor masquerade as VK data. It does not reproduce Halo2's Blake2b transcript or pinned-key
 //! serialization; those remain trusted from the Rust capture. Given the proof byte string the
-//! verifier consumed ([`VerifyingKey::dump_vesta_lean_fixture_with_proof_bytes`]), it checks that
+//! verifier consumed ([`VerifyingKey::dump_vesta_lean_fixture_honest_with_proof_bytes`]), it checks that
 //! re-serializing the recorded proof reads reproduces those bytes exactly and carries them in the
 //! fixture as `capturedProofHex`, so a consumer can check its own proof-string decoder against the
 //! bytes the deployed verifier read. Halo2's `MSM` also merges same-base
@@ -356,7 +356,7 @@ impl VerifyingKey<EqAffine> {
     /// data, so the emitted typed proof `ps` is their canonical parse. A consumer can then check its
     /// own proof-string decoder against the bytes the deployed verifier read.
     #[allow(clippy::too_many_arguments)]
-    pub fn dump_vesta_lean_fixture_with_proof_bytes<R: Read>(
+    pub fn dump_vesta_lean_fixture_honest_with_proof_bytes<R: Read>(
         &self,
         lean_namespace: &str,
         circuit_id: &str,
@@ -415,7 +415,8 @@ impl VerifyingKey<EqAffine> {
 
     /// As [`VerifyingKey::dump_vesta_lean_fixture_match_only`], additionally given `proof_bytes`,
     /// which the fixture carries hex-encoded as `capturedProofHex` after the same
-    /// re-serialization check as [`VerifyingKey::dump_vesta_lean_fixture_with_proof_bytes`].
+    /// re-serialization check as
+    /// [`VerifyingKey::dump_vesta_lean_fixture_honest_with_proof_bytes`].
     #[allow(clippy::too_many_arguments)]
     pub fn dump_vesta_lean_fixture_match_only_with_proof_bytes<R: Read>(
         &self,

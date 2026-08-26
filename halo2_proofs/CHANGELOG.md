@@ -7,7 +7,7 @@ and this project adheres to Rust's notion of
 
 ## [Unreleased]
 ### Added
-- `halo2_proofs::plonk::VerifyingKey::dump_vesta_lean_fixture_with_proof_bytes`
+- `halo2_proofs::plonk::VerifyingKey::dump_vesta_lean_fixture_honest_with_proof_bytes`
   and `dump_vesta_lean_fixture_match_only_with_proof_bytes` (behind the
   `unstable-verifier-fingerprint` feature flag): as the existing exporters,
   additionally given the proof byte string the verifier consumed, which the

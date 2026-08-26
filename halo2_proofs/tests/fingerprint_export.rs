@@ -334,7 +334,7 @@ fn exports_proof_bytes_and_refuses_mismatched_ones() {
         capture_proof_fingerprint(&params, pk.get_vk(), &[&[&pubinputs[..]]], &mut transcript)
             .expect("fingerprint capture");
 
-    let fixture = pk.get_vk().dump_vesta_lean_fixture_with_proof_bytes(
+    let fixture = pk.get_vk().dump_vesta_lean_fixture_honest_with_proof_bytes(
         "Halo2.Fixture.RenderBytes",
         "render_bytes",
         K,
@@ -378,7 +378,7 @@ fn exports_proof_bytes_and_refuses_mismatched_ones() {
     let prev_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(|_| {}));
     let export_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        pk.get_vk().dump_vesta_lean_fixture_with_proof_bytes(
+        pk.get_vk().dump_vesta_lean_fixture_honest_with_proof_bytes(
             "Halo2.Fixture.RenderBytesShort",
             "render_bytes_short",
             K,
