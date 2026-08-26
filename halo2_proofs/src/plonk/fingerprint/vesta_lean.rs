@@ -42,7 +42,7 @@
 //! exporter surface for a cross-check that a trivially-accepting Lean `assemble` would already
 //! fail on the accepting fixtures.
 
-use ff::{Field, PrimeField};
+use ff::{Field, FromUniformBytes, PrimeField};
 use group::Curve;
 use std::collections::{BTreeSet, HashMap};
 use std::io::Read;
@@ -901,6 +901,41 @@ impl VerifyingKey<EqAffine> {
         out.push_str(&format!(
             "def capturedVkTranscriptRepr : Fp := {}\n\n",
             fp(self.transcript_repr)
+        ));
+        // The exact string `VerifyingKey::from_parts` hashed into `transcript_repr`: the compact
+        // `Debug` rendering of the pinned key. Emitting it lets a consumer recompute the digest
+        // and read the pinned fields, instead of trusting the scalar above. The exporter checks the
+        // string is printable ASCII (so `{:?}` adds only the `\"` and `\\` escapes Lean shares)
+        // and that hashing it reproduces `transcript_repr`, so the emitted text is the preimage.
+        let pinned = format!("{:?}", self.pinned());
+        assert!(
+            pinned
+                .chars()
+                .all(|c| c.is_ascii() && !c.is_ascii_control()),
+            "the pinned key description must be printable ASCII"
+        );
+        {
+            let mut hasher = blake2b_simd::Params::new()
+                .hash_length(64)
+                .personal(b"Halo2-Verify-Key")
+                .to_state();
+            hasher.update(&(pinned.len() as u64).to_le_bytes());
+            hasher.update(pinned.as_bytes());
+            let recomputed = Fp::from_uniform_bytes(hasher.finalize().as_array());
+            assert!(
+                recomputed == self.transcript_repr,
+                "hashing the pinned key description must reproduce transcript_repr"
+            );
+        }
+        out.push_str("/-- The exact text `VerifyingKey::from_parts` hashed into `capturedVkTranscriptRepr`:\n");
+        out.push_str("the compact `Debug` rendering of the pinned key (`Halo2-Verify-Key` BLAKE2b over its\n");
+        out.push_str(
+            "little-endian `u64` byte length then its bytes, reduced modulo `p`). The exporter\n",
+        );
+        out.push_str("re-hashed it and checked the scalar above before emitting. -/\n");
+        out.push_str(&format!(
+            "def capturedPinnedKeyDescription : String :=\n  {:?}\n\n",
+            pinned
         ));
 
         // ---- gates ----

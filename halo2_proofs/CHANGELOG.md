@@ -16,6 +16,12 @@ and this project adheres to Rust's notion of
   in read order) reproduces the supplied bytes exactly, so the emitted typed
   proof is their canonical parse. This lets a consumer check its own
   proof-string decoder against the bytes the deployed verifier read.
+- Every Lean fixture the `unstable-verifier-fingerprint` exporters emit now
+  carries `capturedPinnedKeyDescription`: the exact compact `Debug` rendering
+  of the pinned verifying key that `VerifyingKey::from_parts` hashes into
+  `transcript_repr`. The exporter re-hashes it and checks the scalar before
+  emitting, so a consumer can recompute the key digest and read the pinned
+  fields instead of trusting the captured scalar.
 
 ## [0.3.5] - 2026-08-02
 ### Added

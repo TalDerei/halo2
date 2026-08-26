@@ -347,6 +347,11 @@ fn exports_proof_bytes_and_refuses_mismatched_ones() {
     assert!(fixture.contains("def capturedProofHex : String :=\n"));
     assert!(fixture.contains(&format!("  {hex:?}\n")));
 
+    // Every fixture also carries the exact pinned-key text `transcript_repr` hashes.
+    let pinned = format!("{:?}", pk.get_vk().pinned());
+    assert!(fixture.contains("def capturedPinnedKeyDescription : String :=\n"));
+    assert!(fixture.contains(&format!("  {pinned:?}\n")));
+
     // The match-only sibling emits the same data for a parseable non-accepting run.
     let wrong_pubinputs = vec![product + Fp::ONE];
     let mut transcript = ChallengeRecorder::<_, _, Challenge255<_>>::init(&proof[..]);
