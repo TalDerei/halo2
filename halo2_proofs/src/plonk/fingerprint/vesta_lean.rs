@@ -189,8 +189,6 @@ fn join_fps(xs: &[Fp]) -> String {
     xs.iter().map(|x| fp(*x)).collect::<Vec<_>>().join(", ")
 }
 
-/// Serialize one gate / lookup `Expression` to a Lean `Expr Fp` literal (mirrors the verifier's
-/// `Expression::evaluate`; virtual selectors are removed before verification).
 /// Lowercase hex, two digits per byte, no separators.
 fn hex_lower(bytes: &[u8]) -> String {
     use std::fmt::Write as _;
@@ -222,6 +220,8 @@ fn reserialize_proof_reads(events: &[TranscriptEvent<EqAffine>]) -> Vec<u8> {
     transcript.finalize()
 }
 
+/// Serialize one gate / lookup `Expression` to a Lean `Expr Fp` literal (mirrors the verifier's
+/// `Expression::evaluate`; virtual selectors are removed before verification).
 fn expr_to_lean(e: &Expression<Fp>) -> String {
     e.evaluate(
         &|c| format!("(.constant {})", fp(c)),
